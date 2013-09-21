@@ -29,55 +29,60 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
-	require('./phpBB3/config.php');
+	require('./template/connection.php');
 	$hostname=get_hostname();
-	$connection=mysql_connect($dbhost,$dbuser,$dbpasswd);
-	if(!$connection){
-		die("Could not connect to the server");
-	}
-	mysql_select_db("web",$connection);
-	mysql_query("set names 'utf8'",$connection);
-	$query=mysql_query("SELECT * from actions NATURAL JOIN projects");
+	
+	try
+	{
+		$stmt=$conn->prepare("SELECT * from actions NATURAL JOIN projects");
+		$stmt->execute();
 ?>
 
 <div id="projects">
 <?php
-	while($result=mysql_fetch_assoc($query)){
-		$forum_user = $result['USER'];
+		foreach($stmt->fetch(PDO::FETCH_ASSOC) as $result)
+		{
+			$forum_user = $result['USER'];
 ?>
-	<div class="project">
-		<a  href="<?php echo $hostname;?>/image_upload.php?id=<?php echo $result['ACTIONID']?>&type=cover"><img class="cover floatleft" src="<?php echo $hostname.$result['COVERPATH'];?>"></img></a>
+		<div class="project">
+			<a  href="<?php echo $hostname;?>/image_upload.php?id=<?php echo $result['ACTIONID']?>&type=cover"><img class="cover floatleft" src="<?php echo $hostname.$result['COVERPATH'];?>"></img></a>
 
-		<div class="details floatleft">
-			<h3> <?php echo $result['TITLE']; ?></h3>
-			<p>
-				<strong>Δημιουργός: </strong> <?php echo '<a href="'. $hostname . '/phpBB3/memberlist.php?mode=viewprofile&un=' . $forum_user . '" title="">'. $forum_user .'</a>'; ?>
-			</p>
-			<p>
-				<strong>Repo: </strong><a href="<?php echo $result['GIT']?>"><?php echo $result['GIT']?></a>
-			</p>
-			<p>
-				<strong>Licence: </strong><?php echo $result['LICENCE'];?>
+			<div class="details floatleft">
+				<h3> <?php echo $result['TITLE']; ?></h3>
+				<p>
+					<strong>Δημιουργός: </strong> <?php echo '<a href="'. $hostname . '/phpBB3/memberlist.php?mode=viewprofile&un=' . $forum_user . '" title="">'. $forum_user .'</a>'; ?>
+				</p>
+				<p>
+					<strong>Repo: </strong><a href="<?php echo $result['GIT']?>"><?php echo $result['GIT']?></a>
+				</p>
+				<p>
+					<strong>Licence: </strong><?php echo $result['LICENCE'];?>
 
-				<br />
-				<br />
+					<br />
+					<br />
 
-				<strong><a class="page-button" href="<?php echo $hostname;?>/phpBB3/<?php echo $result['FORUM']?>">Forum link</a></strong>
-				<a class="page-button" href="<?php echo $hostname;?>/action_viewer.php?id=<?php echo $result['ACTIONID']?>">More Info</a>
+					<strong><a class="page-button" href="<?php echo $hostname;?>/phpBB3/<?php echo $result['FORUM']?>">Forum link</a></strong>
+					<a class="page-button" href="<?php echo $hostname;?>/action_viewer.php?id=<?php echo $result['ACTIONID']?>">More Info</a>
 <?php
-				if($user->data['user_id'] != ANONYMOUS){
-			?>
-					<a class="page-button" href="<?php echo $hostname?>/add_project.php?id=<?php echo $result['ACTIONID'];?>&edit=1">Επεξεργασία</a>
-					<a class="page-button" href="<?php echo $hostname;?>/image_upload.php?id=<?php echo $result['ACTIONID']?>&type=image">Μεταφόρτωση Εικόνας</a>
+					if($user->data['user_id'] != ANONYMOUS)
+					{
+?>
+						<a class="page-button" href="<?php echo $hostname?>/add_project.php?id=<?php echo $result['ACTIONID'];?>&edit=1">Επεξεργασία</a>
+						<a class="page-button" href="<?php echo $hostname;?>/image_upload.php?id=<?php echo $result['ACTIONID']?>&type=image">Μεταφόρτωση Εικόνας</a>
 					
 <?php
-				}
+					}
 ?>
-			</p>
+				</p>
+			</div>
+			<div class="clearfix"></div>
 		</div>
-		<div class="clearfix"></div>
-	</div>
 <?php
+		}
+	}
+	catch(PDOException $e)
+	{
+		echo "An error occured";
 	}
 ?>
 </div>
