@@ -16,33 +16,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
-require('./phpBB3/config.php');
+require_once('./template/connection.php');
+
 	$hostname=get_hostname();
 	$id= $_GET['id'];
-	
 	if(!intval($id)){
 		die("Wrong parameters");
 	}
-	$connection=mysql_connect($dbhost,$dbuser,$dbpasswd);
-	if(!$connection){
-		die("Could not connect to the server");
-	}
-	mysql_select_db("web",$connection);
-	mysql_query("set names 'utf8'",$connection);
-	$query_s="Select * from actions where ACTIONID=".intval($id);
-	$query=mysql_query($query_s);
-	if(mysql_num_rows($query)==0){
-		die("Could not find results");
-	}
-
-	$result = mysql_fetch_assoc($query);
-	$forum_users = explode(', ', $result['USER']);
+	
+	$query_s="SELECT * FROM actions WHERE ACTIONID=:id";//.intval($id);
+	try
+	{
+		$stmt=$conn->prepare($query_s);
+		$stmt->bindParam(':id',$id);
+		$stmt->execute();
+		
+		$result=$stmt->fetch(PDO::FETCH_ASSOC);
+		
+		if(!$result || empty($result))
+		{
+			die("Δεν υπάρχει αυτό το event η η ενέργεια αυτή");
+		}
+		
+		$forum_users = explode(', ', $result['USER']);
 ?>
 
 <div id="events">
-		<h2><a href="<?php echo $hostname;?>/action_viewer.php?id=<?php echo $result['ACTIONID']; ?>"><?php echo $result['TITLE']; ?></a></h2>
+		<h2><a href="<?=$hostname;?>/action_viewer.php?id=<?=$result['ACTIONID']; ?>"><?= $result['TITLE']; ?></a></h2>
 	<div class="event">
-		<img id="cover" src="<?php echo $hostname.$result['COVERPATH'];?>" class="floatleft" style="margin-right: 1em;" />
+		<img id="cover" src="<?=$hostname.$result['COVERPATH'];?>" class="floatleft" style="margin-right: 1em;" />
 		<div class="details" style="margin-left: 0;">
 			<p class="other-details">
 				<?php
@@ -58,8 +60,10 @@ require('./phpBB3/config.php');
 					}
 
 					$temp = 0;
-					 foreach ($forum_users as $forum_user){
-						if($temp == 1){
+					 foreach ($forum_users as $forum_user)
+					 {
+						if($temp == 1)
+						{
 							echo ', ';
 						}
 						$temp ++;
@@ -93,6 +97,16 @@ require('./phpBB3/config.php');
 
 				<?php echo $result['ABOUT']; ?>
 			</p>
+<?php	
+	}
+	catch(PDOException $e)
+	{
+		//die("Προεκυψε πρόβλημα παρακαλώ δοκιμάστε αργότερα");
+		echo $e->getMessage()."<br>";
+		
+	}
+?>
+
 		</div>
 		<div class="clearfix"></div>
 	</div>

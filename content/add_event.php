@@ -16,7 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>
 */
-require('./phpBB3/config.php');
+require('./template/connection.php');
+
 $edit=$_GET['edit'];
 $id=$_GET['id'];
 	
@@ -26,15 +27,15 @@ if(!intval($id) && (!intval($edit) && ($edit!=1||$edit!=0)))
 }
 
 $hostname=get_hostname();
-$connection=mysql_connect($dbhost,$dbuser,$dbpasswd);
+//$connection=mysql_connect($dbhost,$dbuser,$dbpasswd);
 
-if(!$connection)
-{
-	die("Δεν μπορεί να συνδεθεί στην βάση δεδομένων");
-}
+//if(!$connection)
+//{
+	//die("Δεν μπορεί να συνδεθεί στην βάση δεδομένων");
+//}
 
-mysql_select_db("web",$connection);
-mysql_query("set names 'utf8'",$connection);
+//mysql_select_db("web",$connection);
+//mysql_query("set names 'utf8'",$connection);
 
 if (($user->data['user_id'] != ANONYMOUS)&&$auth->acl_gets('a_'))
 {
